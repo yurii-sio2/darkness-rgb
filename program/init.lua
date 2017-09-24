@@ -1,11 +1,15 @@
+local startTimer = tmr.create()
+
 function startup()
     print('in startup')
-    -- dofile('main.lua')
-    --dofile("config.lua");
-    -- dofile("move-and-led.lua");
-
+    startTimer:stop()
+    
+    dofile("config.lua");
+    dofile("move-and-led.lua");
+--[[
     gpio.mode(8, gpio.OUTPUT)
     gpio.write(8, gpio.HIGH)
+    ]]
     
 --[[    dofile("light-sensor.lua");
 
@@ -38,8 +42,25 @@ function startup()
 ]]
 end
 
-    gpio.mode(8, gpio.OUTPUT)
-    gpio.write(8, gpio.LOW)
-tmr.alarm(0,6000,0,startup)
+local onboardLedPin = 4
+local isOn = false
+gpio.mode(onboardLedPin, gpio.OUTPUT)
+
+startTimer:alarm(
+    100,
+    tmr.ALARM_AUTO, 
+    function()
+        if(isOn) then
+            gpio.write(onboardLedPin, gpio.HIGH)
+        else
+            gpio.write(onboardLedPin, gpio.LOW)
+        end
+        isOn = not isOn
+    end
+)
+
+tmr.alarm(0,8000,0,startup)
+startTimer:start()
 print("init file executed")
+
 

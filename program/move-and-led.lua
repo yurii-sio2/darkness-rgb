@@ -1,7 +1,7 @@
 dofile("rgb-led-driver.lua")
 onboardLedPin = 4
 gpio.mode(onboardLedPin, gpio.OUTPUT)
-gpio.write(onboardLedPin, gpio.HIGH)      -- inveted pin. turn off led
+gpio.write(onboardLedPin, gpio.LOW)      -- inveted pin. turn on led
 
 gpio.mode(moveSensorPin, gpio.INT)
 
@@ -19,7 +19,8 @@ local noMotionTimer = tmr.create()
 
 local ledDriver = LedDriver.init(ledsCnf.pinRed, 
                         ledsCnf.pinGreen, ledsCnf.pinBlue, 
-                        ledsCnf.changeColorOncePerSeconds)
+                        ledsCnf.changeColorOncePerSeconds,
+                        ledsCnf.pwmFreequency)
 local lightSensor = LightSensor.init(lighSensorCnf.lowerThreshold, 
                         lighSensorCnf.upperThreshold)
 
@@ -71,7 +72,7 @@ local function lightLevelCheckTimerStart()
 
     if(not isLightLevelRunning) then
         lightLevelTimer:alarm(
-            500,
+            250,
             tmr.ALARM_AUTO, 
             function()
                 local lightState = lightSensor:getState()
@@ -127,3 +128,6 @@ end
 
 print('init motion senson listener')
 gpio.trig(moveSensorPin, 'both', moveDetected)
+
+gpio.write(onboardLedPin, gpio.HIGH) -- inveted pin. turn off led
+moveDetected(gpio.HIGH, 0)

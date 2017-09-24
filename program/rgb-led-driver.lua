@@ -5,13 +5,13 @@ LedDriver = {}
 LedDriver.__index = LedDriver
 
 
-function LedDriver.init(pinRed, pinGreen, pinBlue, changeColorOncePerSeconds)
+function LedDriver.init(pinRed, pinGreen, pinBlue, changeColorOncePerSeconds, pwmFreequency)
     local self = setmetatable({}, LedDriver)
     self.pinRed = pinRed
     self.pinGreen = pinGreen
     self.pinBlue = pinBlue
     
-    self.freeq = 100
+    self.freeq = pwmFreequency
     self.maxDuty = 1023
     self.maxTotalDuty = 1023
     self.smoothTimeMSec = 3000
@@ -53,10 +53,10 @@ function LedDriver.registerColorChangeTimer(self)
                 self.lastDutyBlue, dutyRed, dutyGreen, dutyBlue)
 
             self.smoothTimeMSec = oldSmoothTime
-
+            --[[
             self.lastDutyRed = dutyRed
             self.lastDutyGreen = dutyGreen
-            self.lastDutyBlue = dutyBlue
+            self.lastDutyBlue = dutyBlue]]
         end
     )
 end

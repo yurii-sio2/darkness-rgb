@@ -10,3 +10,4 @@ ledsCnf.pinGreen = 6          -- GPIO12
 ledsCnf.pinBlue = 5           -- GPIO14
 ledsCnf.ledOnTimeoutSec = 120
 ledsCnf.changeColorOncePerSeconds = 20
+ledsCnf.pwmFreequency = 100 -- from 1 to 1000
