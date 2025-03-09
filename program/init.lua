@@ -1,66 +1,28 @@
-local startTimer = tmr.create()
+local ACTIVE_FOLDER_FILE = "active_folder.txt"
 
-function startup()
-    print('in startup')
-    startTimer:stop()
-    
-    dofile("config.lua");
-    dofile("move-and-led.lua");
---[[
-    gpio.mode(8, gpio.OUTPUT)
-    gpio.write(8, gpio.HIGH)
-    ]]
-    
---[[    dofile("light-sensor.lua");
+print(file.list())
 
-    local timer = tmr.create()
-    lightSensor = LightSensor.init(800, 900)
-    timer:alarm(1000,
-        tmr.ALARM_AUTO, 
-        function()
-            print(lightSensor:getState(), adc.read(0))
-        end
-    )
-    ]]
---[[
-    --local pinRed = 1
-    local pinGreen = 2
-    --local pinBlue = 8
-    
-    -- gpio.mode(pinRed, gpio.OUTPUT)
-    gpio.mode(pinGreen, gpio.OUTPUT)
-    -- gpio.mode(pinBlue, gpio.OUTPUT)
-    
-    --gpio.write(pinRed, gpio.LOW)
-    gpio.write(pinGreen, gpio.LOW)
-    --gpio.write(pinBlue, gpio.LOW)
-    
-    for i=0,8,1 do 
-        gpio.mode(i, gpio.OUTPUT)
-        gpio.write(i, gpio.LOW)
+local function getActiveFolder()
+    -- Read the active folder from a file, default to 'a' if not found
+    local activeFolder = "a"
+    if file.open(ACTIVE_FOLDER_FILE, "r") then
+        activeFolder = file.readline():gsub("\n", "")
+        file.close()
     end
-]]
+    return activeFolder
 end
 
-local onboardLedPin = 4
-local isOn = false
-gpio.mode(onboardLedPin, gpio.OUTPUT)
+activeFolder = getActiveFolder() .. "_"
 
-startTimer:alarm(
-    100,
-    tmr.ALARM_AUTO, 
-    function()
-        if(isOn) then
-            gpio.write(onboardLedPin, gpio.HIGH)
-        else
-            gpio.write(onboardLedPin, gpio.LOW)
-        end
-        isOn = not isOn
-    end
-)
+-- Load configuration files
+dofile("sensors-count.lua")
 
-tmr.alarm(0,8000,0,startup)
-startTimer:start()
-print("init file executed")
+-- Load files from the active folder
+dofile(activeFolder .. "init-common.lua")
 
+print("Loaded files from: " .. activeFolder)
 
+-- Schedule update check at 3 AM every day (10800 seconds after midnight)
+tmr.create():alarm(10800 * 1000, tmr.ALARM_SEMI, function()
+    dofile(activeFolder .. "update.lua")
+end)

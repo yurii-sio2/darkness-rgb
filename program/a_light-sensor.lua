@@ -13,12 +13,12 @@ end
 
 function LightSensor.getState(self)
     local value = adc.read(0)
-    -- print(value)
+    print("light sensor value: " .. value)
     if(self.prevValue < self.upperThreshold and 
-        value > self.upperThreshold) then
+        value >= self.upperThreshold) then
         self.currentState = 1
     elseif(self.prevValue > self.lowerThreshold and 
-        value < self.lowerThreshold) then
+        value <= self.lowerThreshold) then
         self.currentState = 0
     end
     self.prevValue = value

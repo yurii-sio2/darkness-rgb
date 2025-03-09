@@ -1,5 +1,6 @@
--- require 'class'
-dofile("light-sensor.lua");
+
+local MODE_RANDOM = 0
+local MODE_WHITE = 1
 
 LedDriver = {}
 LedDriver.__index = LedDriver
@@ -14,7 +15,7 @@ function LedDriver.init(pinRed, pinGreen, pinBlue, changeColorOncePerSeconds, pw
     self.freeq = pwmFreequency
     self.maxDuty = 1023
     self.maxTotalDuty = 1023
-    self.smoothTimeMSec = 3000
+    self.smoothTimeMSec = 4000
     self.colorChangeTimeMSec = 6000
 
     self.changeColorOncePerSeconds = changeColorOncePerSeconds
@@ -34,6 +35,8 @@ function LedDriver.init(pinRed, pinGreen, pinBlue, changeColorOncePerSeconds, pw
     self.lastDutyRed = 0;
     self.lastDutyGreen = 0;
     self.lastDutyBlue = 0;
+	
+	self.currentMode = MODE_RANDOM
     
     return self
 end
@@ -70,8 +73,9 @@ function LedDriver.on(self)
     self:smoothChange(0, 0, 0,
         self.lastDutyRed, self.lastDutyGreen, self.lastDutyBlue)
 
-    self.colorChangeTimer:start()
---    print(redDuty, greenDuty, blueDuty)
+    if(self.currentMode == MODE_RANDOM) then
+        self.colorChangeTimer:start()
+    end
 end
 
 function LedDriver.smoothChange(self, redStart, greenStart, blueStart,
@@ -143,28 +147,26 @@ end
 function LedDriver.off(self)
     print("OFF")
     self.smoothTimer:stop()
+    self.colorChangeTimer:stop()
     self:smoothChange(self.lastDutyRed, self.lastDutyGreen, self.lastDutyBlue, 
         0, 0, 0)
-
-    self.colorChangeTimer:stop()
 end
 
 function LedDriver.getColor(self)
-    variant = node.random(1, 3)
-    if(variant == 1) then
-        red, green, blue = self:getRandomColors()
-    elseif(variant == 2) then
-        green, blue, red = self:getRandomColors()
-    else
-        blue, red, green = self:getRandomColors()
-    end
-    --[[
-    red = node.random(0, self.maxDuty)
-    green = node.random(0, self.maxDuty)
-    blue = node.random(0, self.maxDuty)
-    ]]
-    print(red, green, blue, red + green + blue)
-    return red, green, blue
+	if(self.currentMode == MODE_WHITE) then
+		return 1023, 370, 190
+	else -- MODE_RANDOM
+		variant = node.random(1, 3)
+		if(variant == 1) then
+			red, green, blue = self:getRandomColors()
+		elseif(variant == 2) then
+			green, blue, red = self:getRandomColors()
+		else
+			blue, red, green = self:getRandomColors()
+		end
+        print(red, green, blue, red + green + blue)
+        return red, green, blue
+	end
 end
 
 function LedDriver.getRandomColors(self)
@@ -185,4 +187,20 @@ function LedDriver.getRandomColors(self)
     end
 
     return c1, c2, c3
+end
+
+function LedDriver.setModeRandom(self)
+	self.currentMode = MODE_RANDOM
+    -- self.colorChangeTimer:start()
+end
+
+function LedDriver.setModeWhite(self)
+	self.currentMode = MODE_WHITE
+    self.colorChangeTimer:stop()
+    --[[
+    local dutyRed, dutyGreen, dutyBlue = 
+                self:getColor()
+    self:smoothChange(self.lastDutyRed, self.lastDutyGreen, 
+                    self.lastDutyBlue, dutyRed, dutyGreen, dutyBlue)
+    ]]
 end
